@@ -1,7 +1,7 @@
 package io.github.dansparker.coasthint.speedlimit
 
 import io.github.dansparker.coasthint.roaddb.Bounds
-import io.github.dansparker.coasthint.roaddb.RoadDbFile
+import io.github.dansparker.coasthint.roaddb.RoadDbLibrary
 import io.github.dansparker.coasthint.roaddb.StoredWay
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -38,9 +38,9 @@ class OverpassLoader(
     }
 }
 
-/** Offline: reads the installed road database. */
+/** Offline: reads the installed road databases. */
 class OfflineLoader(
-    private val database: RoadDbFile,
+    private val database: RoadDbLibrary,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : CorridorLoader {
     override suspend fun load(request: CorridorRequest): LoadedRoads = withContext(ioDispatcher) {
@@ -51,18 +51,19 @@ class OfflineLoader(
 
 /**
  * Picks online or offline per request according to the setting and the offline coverage.
- * The bounding box of an extract is coarse (Munich lies inside Austria's), so in [SpeedLimitSource.AUTO]
- * offline data only counts if it has a road near the position; otherwise Overpass is asked.
+ * Coverage is first checked by bounding box, which is coarse (Munich lies inside Austria's), so in
+ * [SpeedLimitSource.AUTO] offline data only counts if it has a road near the position; otherwise
+ * Overpass is asked.
  */
 class SelectingLoader(
     private val setting: () -> SpeedLimitSource,
-    private val offlineBounds: suspend () -> Bounds?,
+    private val offlineCovers: suspend (LatLon) -> Boolean,
     private val online: CorridorLoader,
     private val offline: CorridorLoader,
 ) : CorridorLoader {
     override suspend fun load(request: CorridorRequest): LoadedRoads {
         val setting = setting()
-        if (choose(setting, offlineBounds(), request.position) == RoadDataSource.ONLINE) return online.load(request)
+        if (choose(setting, offlineCovers(request.position)) == RoadDataSource.ONLINE) return online.load(request)
         val loaded = offline.load(request)
         if (setting == SpeedLimitSource.AUTO && !loaded.network.hasRoadNear(request.position, COVERAGE_RADIUS_M)) {
             return online.load(request)
@@ -73,17 +74,11 @@ class SelectingLoader(
     companion object {
         private const val COVERAGE_RADIUS_M = 50.0
 
-        fun choose(setting: SpeedLimitSource, offlineBounds: Bounds?, position: LatLon): RoadDataSource =
-            when (setting) {
-                SpeedLimitSource.ONLINE -> RoadDataSource.ONLINE
-                SpeedLimitSource.OFFLINE -> RoadDataSource.OFFLINE
-                SpeedLimitSource.AUTO ->
-                    if (offlineBounds?.contains(position.lat, position.lon) == true) {
-                        RoadDataSource.OFFLINE
-                    } else {
-                        RoadDataSource.ONLINE
-                    }
-            }
+        fun choose(setting: SpeedLimitSource, offlineCovers: Boolean): RoadDataSource = when (setting) {
+            SpeedLimitSource.ONLINE -> RoadDataSource.ONLINE
+            SpeedLimitSource.OFFLINE -> RoadDataSource.OFFLINE
+            SpeedLimitSource.AUTO -> if (offlineCovers) RoadDataSource.OFFLINE else RoadDataSource.ONLINE
+        }
     }
 }
 

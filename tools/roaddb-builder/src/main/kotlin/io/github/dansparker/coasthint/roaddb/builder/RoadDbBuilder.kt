@@ -15,13 +15,23 @@ data class BuildStats(val waysWritten: Int, val waysSkipped: Int, val nodes: Int
  */
 class RoadDbBuilder(private val log: (String) -> Unit = {}) {
 
-    private class CollectedWay(val id: Long, val tags: Map<String, String>, val nodeIds: LongArray)
+    /** Tag values in the order of [RoadDbFormat.TAG_KEYS]; far lighter than a map for millions of ways. */
+    private class CollectedWay(val id: Long, val tagValues: Array<String?>, val nodeIds: LongArray) {
+        fun tags(): Map<String, String> = buildMap {
+            tagValues.forEachIndexed { i, v -> if (v != null) put(RoadDbFormat.TAG_KEYS[i], v) }
+        }
+    }
 
     fun build(source: OsmSource, connection: SQLiteConnection, sourceName: String, created: String): BuildStats {
         val ways = ArrayList<CollectedWay>()
+        // Values like "50" or "primary" repeat millions of times; keep one instance of each.
+        val strings = HashMap<String, String>()
         source.readWays(RoadDbFormat.TAG_KEYS.toSet()) { id, tags, nodeIds ->
             if (tags["highway"] in RoadDbFormat.DRIVABLE_HIGHWAYS && nodeIds.size >= 2) {
-                ways += CollectedWay(id, tags, nodeIds)
+                val values = Array(RoadDbFormat.TAG_KEYS.size) { i ->
+                    tags[RoadDbFormat.TAG_KEYS[i]]?.let { strings.getOrPut(it) { it } }
+                }
+                ways += CollectedWay(id, values, nodeIds)
             }
         }
         log("Pass 1: ${ways.size} drivable ways")
@@ -52,7 +62,7 @@ class RoadDbBuilder(private val log: (String) -> Unit = {}) {
             writer.add(
                 StoredWay(
                     id = way.id,
-                    tags = way.tags,
+                    tags = way.tags(),
                     nodeIds = way.nodeIds,
                     latE7 = IntArray(indices.size) { lat[indices[it]] },
                     lonE7 = IntArray(indices.size) { lon[indices[it]] },

@@ -17,7 +17,8 @@ kotlin {
 
 application {
     mainClass = "io.github.dansparker.coasthint.roaddb.builder.MainKt"
-    applicationDefaultJvmArgs = listOf("-Xmx3g")
+    // Enough for most countries; override with ROADDB_BUILDER_OPTS=-Xmx8g for very large ones.
+    applicationDefaultJvmArgs = listOf("-Xmx4g")
 }
 
 dependencies {

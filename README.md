@@ -35,19 +35,37 @@ Voraussetzungen: JDK 17+, Android SDK (API 37).
 
 ## Offline-Tempolimits
 
-Ohne Mobilfunk kommen die Tempolimits aus einer SQLite-Datei (mit R-Tree-Index), die am PC
-aus einem OpenStreetMap-Extrakt erzeugt wird:
+Ohne Mobilfunk kommen die Tempolimits aus SQLite-Dateien (mit R-Tree-Index), eine pro Land
+oder Region, die am PC aus OpenStreetMap-Extrakten erzeugt werden.
 
-1. Extrakt herunterladen, z. B. `austria-latest.osm.pbf` von
-   [Geofabrik](https://download.geofabrik.de/europe/austria.html)
-2. Umwandeln:
+**Einmalig: Konverter bauen** (braucht Java 17+ im `PATH`)
+
+```bash
+./gradlew :tools:roaddb-builder:installDist
+```
+
+Das fertige Programm liegt dann in `tools/roaddb-builder/build/install/roaddb-builder/`
+(Startskript unter `bin/`); der Ordner kann an einen beliebigen Ort kopiert werden.
+
+**Daten erzeugen**
+
+1. Extrakte in einen Ordner laden, z. B. `D:\OSM\`, von
+   [Geofabrik](https://download.geofabrik.de/europe.html): `austria-latest.osm.pbf`,
+   `germany-latest.osm.pbf`, …
+2. Konverter mit dem Ordner starten:
    ```bash
-   ./gradlew :tools:roaddb-builder:run --args="austria-latest.osm.pbf austria-roads.db"
+   tools\roaddb-builder\build\install\roaddb-builder\bin\roaddb-builder.bat D:\OSM
    ```
-3. Die `.db`-Datei aufs Handy kopieren und in CoastHint unter **Offline-Daten** importieren
+   Für jeden Extrakt entsteht `D:\OSM\roaddb\<land>.db`. Länder, deren Datei neuer als der
+   Extrakt ist, werden übersprungen – nach dem Herunterladen neuer Extrakte einfach erneut
+   starten. `--force` erzwingt den Neubau. Für sehr große Länder vorher mehr Speicher geben:
+   `set ROADDB_BUILDER_OPTS=-Xmx8g`.
+3. Die `.db`-Dateien aufs Handy kopieren und in CoastHint unter **Offline-Daten** importieren.
+   Ein erneuter Import desselben Landes ersetzt die alte Datei.
 
-Unter **Einstellungen → Tempolimits aus** steht standardmäßig „Automatisch“: offline, wo die
-Datei die Position abdeckt, sonst online über Overpass.
+Unter **Einstellungen → Tempolimits aus** steht standardmäßig „Automatisch“: offline, wo eine
+installierte Datei die Position abdeckt (auch über Grenzen hinweg, wenn mehrere Länder
+installiert sind), sonst online über Overpass.
 
 ## Tech-Stack
 

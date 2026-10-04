@@ -83,7 +83,7 @@ class CoastHintService : LifecycleService() {
             scope = lifecycleScope,
             loader = SelectingLoader(
                 setting = { settings.speedLimitSource },
-                offlineBounds = { withContext(Dispatchers.IO) { runCatching { offlineRoads.info()?.bounds }.getOrNull() } },
+                offlineCovers = { p -> withContext(Dispatchers.IO) { offlineRoads.covers(p.lat, p.lon) } },
                 online = OverpassLoader({ query -> OverpassClient(settings.overpassServer).fetch(query) }),
                 offline = OfflineLoader(offlineRoads),
             ),

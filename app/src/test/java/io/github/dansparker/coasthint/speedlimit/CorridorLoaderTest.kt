@@ -16,17 +16,19 @@ class CorridorLoaderTest {
     /** Inside Austria's bounding box, but not in Austria. */
     private val munich = LatLon(48.14, 11.58)
 
+    /** Coverage by Austria's bounding box, as the library reports it. */
+    private val coveredByAustria: suspend (LatLon) -> Boolean = { austria.contains(it.lat, it.lon) }
+
     @Test
     fun `auto uses offline data only where it covers the position`() {
-        assertEquals(RoadDataSource.OFFLINE, SelectingLoader.choose(SpeedLimitSource.AUTO, austria, vienna))
-        assertEquals(RoadDataSource.ONLINE, SelectingLoader.choose(SpeedLimitSource.AUTO, austria, prague))
-        assertEquals(RoadDataSource.ONLINE, SelectingLoader.choose(SpeedLimitSource.AUTO, null, vienna))
+        assertEquals(RoadDataSource.OFFLINE, SelectingLoader.choose(SpeedLimitSource.AUTO, offlineCovers = true))
+        assertEquals(RoadDataSource.ONLINE, SelectingLoader.choose(SpeedLimitSource.AUTO, offlineCovers = false))
     }
 
     @Test
     fun `explicit setting wins`() {
-        assertEquals(RoadDataSource.ONLINE, SelectingLoader.choose(SpeedLimitSource.ONLINE, austria, vienna))
-        assertEquals(RoadDataSource.OFFLINE, SelectingLoader.choose(SpeedLimitSource.OFFLINE, null, prague))
+        assertEquals(RoadDataSource.ONLINE, SelectingLoader.choose(SpeedLimitSource.ONLINE, offlineCovers = true))
+        assertEquals(RoadDataSource.OFFLINE, SelectingLoader.choose(SpeedLimitSource.OFFLINE, offlineCovers = false))
     }
 
     /** A short road through [at]. */
@@ -39,7 +41,7 @@ class CorridorLoaderTest {
     fun `selecting loader delegates to the chosen loader`() = runTest {
         val online = CorridorLoader { LoadedRoads(RoadNetwork.EMPTY, RoadDataSource.ONLINE) }
         val offline = CorridorLoader { LoadedRoads(roadAt(vienna), RoadDataSource.OFFLINE) }
-        val loader = SelectingLoader({ SpeedLimitSource.AUTO }, { austria }, online, offline)
+        val loader = SelectingLoader({ SpeedLimitSource.AUTO }, coveredByAustria, online, offline)
         assertEquals(RoadDataSource.OFFLINE, loader.load(CorridorRequest(vienna, listOf(vienna), 250)).source)
         assertEquals(RoadDataSource.ONLINE, loader.load(CorridorRequest(prague, listOf(prague), 250)).source)
     }
@@ -49,9 +51,9 @@ class CorridorLoaderTest {
         val online = CorridorLoader { LoadedRoads(RoadNetwork.EMPTY, RoadDataSource.ONLINE) }
         // The extract has no roads around Munich
         val offline = CorridorLoader { LoadedRoads(roadAt(vienna), RoadDataSource.OFFLINE) }
-        val auto = SelectingLoader({ SpeedLimitSource.AUTO }, { austria }, online, offline)
+        val auto = SelectingLoader({ SpeedLimitSource.AUTO }, coveredByAustria, online, offline)
         assertEquals(RoadDataSource.ONLINE, auto.load(CorridorRequest(munich, listOf(munich), 250)).source)
-        val forcedOffline = SelectingLoader({ SpeedLimitSource.OFFLINE }, { austria }, online, offline)
+        val forcedOffline = SelectingLoader({ SpeedLimitSource.OFFLINE }, coveredByAustria, online, offline)
         assertEquals(RoadDataSource.OFFLINE, forcedOffline.load(CorridorRequest(munich, listOf(munich), 250)).source)
     }
 

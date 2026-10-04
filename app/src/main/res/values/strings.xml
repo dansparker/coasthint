@@ -132,13 +132,10 @@
     <string name="limit_source_offline">Offline</string>
 
     <string name="nav_offline">Offline-Daten</string>
-    <string name="offline_intro">Mit einer Offline-Datenbank kommen die Tempolimits ohne Mobilfunk aus. Die Datei wird am PC mit dem Tool roaddb-builder aus einem OpenStreetMap-Extrakt erzeugt (siehe README) und hier importiert.</string>
+    <string name="offline_intro">Mit Offline-Daten kommen die Tempolimits ohne Mobilfunk aus. Die Dateien (eine pro Land oder Region) werden am PC mit dem Tool roaddb-builder aus OpenStreetMap-Extrakten erzeugt (siehe README) und hier importiert. Ein erneuter Import desselben Landes ersetzt die alte Datei.</string>
     <string name="offline_none">Keine Offline-Daten installiert.</string>
-    <string name="offline_source">Quelle</string>
-    <string name="offline_created">Erstellt</string>
-    <string name="offline_ways">Straßen</string>
-    <string name="offline_size">Größe</string>
-    <string name="offline_area">Gebiet</string>
+    <string name="offline_entry">Stand %1$s · %2$s Straßen · %3$s MB</string>
+    <string name="offline_imported">Importiert: %1$s</string>
     <string name="offline_import">Datei importieren</string>
     <string name="offline_delete">Löschen</string>
     <string name="offline_error">Fehler: %1$s</string>

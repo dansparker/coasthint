@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.dansparker.coasthint.R
 import io.github.dansparker.coasthint.core.CoastMode
 import io.github.dansparker.coasthint.log.TripLogger
 import io.github.dansparker.coasthint.output.ToneCueOutput
@@ -67,31 +68,29 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
 
     fun importOffline(uri: Uri) {
         viewModelScope.launch {
-            _offline.value = _offline.value.copy(busy = true, error = null)
-            val failure = withContext(Dispatchers.IO) {
+            _offline.value = _offline.value.copy(busy = true, message = null, error = null)
+            val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val input = app.contentResolver.openInputStream(uri) ?: throw RoadDbException("cannot open file")
-                    input.use(offlineRoads::replaceWith)
-                }.exceptionOrNull()
+                    input.use(offlineRoads::import)
+                }
             }
-            _offline.value = readOffline().copy(error = failure?.let { it.message ?: it.javaClass.simpleName })
+            _offline.value = readOffline().copy(
+                message = result.getOrNull()?.let { app.getString(R.string.offline_imported, it) },
+                error = result.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName },
+            )
         }
     }
 
-    fun deleteOffline() {
+    fun deleteOffline(name: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { offlineRoads.delete() }
+            withContext(Dispatchers.IO) { offlineRoads.delete(name) }
             _offline.value = readOffline()
         }
     }
 
-    private suspend fun readOffline(): OfflineDataState = withContext(Dispatchers.IO) {
-        try {
-            OfflineDataState(info = offlineRoads.info(), sizeBytes = offlineRoads.file.length())
-        } catch (e: RoadDbException) {
-            OfflineDataState(error = e.message)
-        }
-    }
+    private suspend fun readOffline(): OfflineDataState =
+        withContext(Dispatchers.IO) { OfflineDataState(installed = offlineRoads.installed()) }
 
     fun refreshTrips() {
         viewModelScope.launch {

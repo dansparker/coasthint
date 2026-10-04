@@ -27,6 +27,19 @@ object RoadDbFormat {
 
     internal fun column(tagKey: String) = "tag_" + tagKey.replace(':', '_')
 
+    /**
+     * Short region name from an extract file name, used to name database files:
+     * "austria-latest.osm.pbf" → "austria", "Baden-Württemberg.osm.pbf" → "baden-w-rttemberg".
+     */
+    fun baseName(sourceFileName: String): String {
+        val name = sourceFileName.substringAfterLast('/').substringAfterLast('\\')
+            .lowercase()
+            .removeSuffix(".pbf").removeSuffix(".osm").removeSuffix("-latest")
+            .replace(Regex("[^a-z0-9_-]"), "-")
+            .trim('-')
+        return name.ifEmpty { "roads" }
+    }
+
     internal object Meta {
         const val FORMAT_VERSION = "format_version"
         const val SOURCE = "source"
@@ -49,6 +62,9 @@ object RoadDbFormat {
 /** Geographic bounding box in degrees. */
 data class Bounds(val minLat: Double, val minLon: Double, val maxLat: Double, val maxLon: Double) {
     fun contains(lat: Double, lon: Double): Boolean = lat in minLat..maxLat && lon in minLon..maxLon
+
+    fun intersects(other: Bounds): Boolean =
+        other.maxLat >= minLat && other.minLat <= maxLat && other.maxLon >= minLon && other.minLon <= maxLon
 
     companion object {
         fun around(lats: List<Double>, lons: List<Double>): Bounds =

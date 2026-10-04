@@ -17,6 +17,15 @@ object TurnType {
     const val RNDB = 13
     const val RNLB = 14
 
+    private val labels = mapOf(
+        C to "C", TL to "TL", TSLL to "TSLL", TSHL to "TSHL", TR to "TR", TSLR to "TSLR",
+        TSHR to "TSHR", KL to "KL", KR to "KR", TU to "TU", TRU to "TRU", OFFR to "OFFR",
+        RNDB to "RNDB", RNLB to "RNLB",
+    )
+
+    /** Short OsmAnd name of the turn type, e.g. "TL", or "?" for unknown values. */
+    fun label(turnType: Int): String = labels[turnType] ?: "?"
+
     fun category(turnType: Int): TurnCategory = when (turnType) {
         TL, TR -> TurnCategory.TURN
         TSHL, TSHR, TU, TRU -> TurnCategory.SHARP_TURN

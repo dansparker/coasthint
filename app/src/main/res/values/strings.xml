@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CoastHint</string>
-    <string name="status_not_started">Noch nicht gestartet</string>
+
+    <string name="osmand_stopped">OsmAnd: nicht verbunden</string>
+    <string name="osmand_not_installed">OsmAnd ist nicht installiert</string>
+    <string name="osmand_connecting">OsmAnd: verbinde …</string>
+    <string name="osmand_connected">OsmAnd verbunden ✓ (%1$s)</string>
+    <string name="osmand_retrying">OsmAnd ✗ %1$s – neuer Versuch in %2$d s</string>
+
+    <string name="debug_open">Debug-Ansicht</string>
+    <string name="debug_close">Zurück</string>
+    <string name="debug_title">Debug</string>
+    <string name="debug_none">–</string>
+    <string name="debug_distance_to">Nächstes Manöver</string>
+    <string name="debug_turn_type">Turn-Type</string>
+    <string name="debug_left_side">Linksverkehr</string>
+    <string name="debug_age">Letztes Update vor</string>
+    <string name="debug_voice">Letzte Ansagen von OsmAnd</string>
 </resources>

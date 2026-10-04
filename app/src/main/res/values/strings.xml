@@ -8,13 +8,49 @@
     <string name="osmand_connected">OsmAnd verbunden ✓ (%1$s)</string>
     <string name="osmand_retrying">OsmAnd ✗ %1$s – neuer Versuch in %2$d s</string>
 
+    <string name="service_running">Hinweise aktiv</string>
+    <string name="service_stopped">Hinweise aus</string>
+    <string name="action_start">Starten</string>
+    <string name="action_stop">Beenden</string>
+    <string name="action_test_tone">Testton</string>
+    <string name="permission_location_denied">Ohne Standortzugriff kann CoastHint die Geschwindigkeit nicht messen.</string>
+
+    <string name="event_turn">Abbiegung</string>
+    <string name="event_sharp_turn">Scharfe Abbiegung</string>
+    <string name="event_slight_turn">Leichte Abbiegung</string>
+    <string name="event_roundabout">Kreisverkehr</string>
+    <string name="event_maneuver">Manöver</string>
+    <string name="event_speed_limit">Tempo %1$d</string>
+
+    <string name="notification_channel">Fahrtstatus</string>
+    <string name="notification_title">CoastHint aktiv</string>
+    <string name="notification_starting">Wird gestartet …</string>
+    <string name="notification_osmand_ok">OsmAnd ✓</string>
+    <string name="notification_osmand_missing">OsmAnd ✗</string>
+    <string name="notification_no_event">kein Ereignis</string>
+    <string name="notification_next_event">%1$s in %2$d m</string>
+    <string name="notification_stop">Beenden</string>
+
     <string name="debug_open">Debug-Ansicht</string>
     <string name="debug_close">Zurück</string>
     <string name="debug_title">Debug</string>
     <string name="debug_none">–</string>
+    <string name="debug_section_osmand">OsmAnd</string>
+    <string name="debug_section_driving">Fahrt</string>
+    <string name="debug_section_advice">Nächstes Ereignis</string>
     <string name="debug_distance_to">Nächstes Manöver</string>
     <string name="debug_turn_type">Turn-Type</string>
     <string name="debug_left_side">Linksverkehr</string>
     <string name="debug_age">Letztes Update vor</string>
+    <string name="debug_speed">Geschwindigkeit</string>
+    <string name="debug_acceleration">dv/dt</string>
+    <string name="debug_event">Ereignis</string>
+    <string name="debug_d_event">d_event</string>
+    <string name="debug_v_target">v_Ziel</string>
+    <string name="debug_d_coast">d_coast</string>
+    <string name="debug_d_trigger">d_coast + Marge</string>
+    <string name="debug_last_cue">Letzter Hinweis</string>
+    <string name="debug_last_cue_value">%1$s, vor %2$s</string>
     <string name="debug_voice">Letzte Ansagen von OsmAnd</string>
+    <string name="debug_service_off">Hinweise sind aus – Werte erscheinen nach dem Start.</string>
 </resources>

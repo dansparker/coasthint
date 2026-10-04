@@ -1,10 +1,16 @@
 package io.github.dansparker.coasthint.ui
 
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -22,40 +28,80 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.dansparker.coasthint.R
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
+import io.github.dansparker.coasthint.service.LiveState
 
 @Composable
 fun MainScreen(viewModel: MainViewModel = viewModel()) {
     var showDebug by rememberSaveable { mutableStateOf(false) }
-    val status by viewModel.osmAnd.status.collectAsStateWithLifecycle()
+    var permissionDenied by rememberSaveable { mutableStateOf(false) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { result ->
+        // Notifications are optional; precise location is required.
+        permissionDenied = result[Manifest.permission.ACCESS_FINE_LOCATION] != true
+        if (!permissionDenied) viewModel.start()
+    }
+    val requestStart = {
+        val permissions = buildList {
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
+            add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        permissionLauncher.launch(permissions.toTypedArray())
+    }
 
     if (showDebug) {
         BackHandler { showDebug = false }
-        val navigation by viewModel.osmAnd.navigation.collectAsStateWithLifecycle()
-        val voiceLog by viewModel.voiceLog.collectAsStateWithLifecycle()
-        DebugScreen(status, navigation, voiceLog, onClose = { showDebug = false })
+        DebugScreen(state, onClose = { showDebug = false })
     } else {
-        StatusScreen(status, onOpenDebug = { showDebug = true })
+        StatusScreen(
+            state = state,
+            permissionDenied = permissionDenied,
+            onStart = requestStart,
+            onStop = viewModel::stop,
+            onTestTone = viewModel::playTestTone,
+            onOpenDebug = { showDebug = true },
+        )
     }
 }
 
 @Composable
-private fun StatusScreen(status: OsmAndStatus, onOpenDebug: () -> Unit) {
+private fun StatusScreen(
+    state: LiveState,
+    permissionDenied: Boolean,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onTestTone: () -> Unit,
+    onOpenDebug: () -> Unit,
+) {
     Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
         Column(
             modifier = Modifier.padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineMedium,
+                stringResource(if (state.running) R.string.service_running else R.string.service_stopped),
+                style = MaterialTheme.typography.titleMedium,
             )
-            Text(
-                text = osmAndStatusText(status),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            OutlinedButton(onClick = onOpenDebug) {
-                Text(stringResource(R.string.debug_open))
+            if (state.running) Text(osmAndStatusText(state.osmAnd))
+            if (permissionDenied) {
+                Text(
+                    stringResource(R.string.permission_location_denied),
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (state.running) {
+                    Button(onClick = onStop) { Text(stringResource(R.string.action_stop)) }
+                } else {
+                    Button(onClick = onStart) { Text(stringResource(R.string.action_start)) }
+                }
+                OutlinedButton(onClick = onTestTone) { Text(stringResource(R.string.action_test_tone)) }
+            }
+            OutlinedButton(onClick = onOpenDebug) { Text(stringResource(R.string.debug_open)) }
         }
     }
 }
@@ -73,5 +119,14 @@ fun osmAndStatusText(status: OsmAndStatus): String = when (status) {
 @Preview(showBackground = true)
 @Composable
 private fun StatusScreenPreview() {
-    CoastHintTheme { StatusScreen(OsmAndStatus.Connected("net.osmand.plus"), onOpenDebug = {}) }
+    CoastHintTheme {
+        StatusScreen(
+            state = LiveState(running = true, osmAnd = OsmAndStatus.Connected("net.osmand.plus")),
+            permissionDenied = false,
+            onStart = {},
+            onStop = {},
+            onTestTone = {},
+            onOpenDebug = {},
+        )
+    }
 }

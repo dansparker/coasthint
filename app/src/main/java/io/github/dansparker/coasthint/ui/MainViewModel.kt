@@ -3,26 +3,23 @@ package io.github.dansparker.coasthint.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.dansparker.coasthint.osmand.OsmAndConnection
-import kotlinx.coroutines.flow.SharingStarted
+import io.github.dansparker.coasthint.output.ToneCueOutput
+import io.github.dansparker.coasthint.service.CoastHintRuntime
+import io.github.dansparker.coasthint.service.CoastHintService
+import io.github.dansparker.coasthint.service.LiveState
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.runningFold
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-// The OsmAnd connection lives here until the foreground service takes it over (step 4).
-class MainViewModel(app: Application) : AndroidViewModel(app) {
-    val osmAnd = OsmAndConnection(app, viewModelScope).also { it.start() }
+class MainViewModel(private val app: Application) : AndroidViewModel(app) {
+    val state: StateFlow<LiveState> = CoastHintRuntime.state
 
-    /** Most recent OsmAnd voice prompts, newest first. */
-    val voiceLog: StateFlow<List<String>> = osmAnd.voiceMessages
-        .runningFold(emptyList<String>()) { log, prompts -> (prompts + log).take(VOICE_LOG_SIZE) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val tone = ToneCueOutput(app)
 
-    override fun onCleared() {
-        osmAnd.stop()
-    }
+    fun start() = CoastHintService.start(app)
 
-    private companion object {
-        const val VOICE_LOG_SIZE = 10
+    fun stop() = CoastHintService.stop(app)
+
+    fun playTestTone() {
+        viewModelScope.launch { tone.playChime() }
     }
 }

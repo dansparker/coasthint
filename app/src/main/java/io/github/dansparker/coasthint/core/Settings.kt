@@ -13,6 +13,10 @@ data class CoastSettings(
     val mode: CoastMode = CoastMode.ENGINE_BRAKING,
     val engineBrakingDecelerationMps2: Double = 0.6,
     val sailingDecelerationMps2: Double = 0.3,
+    /** Calibrated a(v) = c0 + c2 · v² per mode; used instead of the constant if enabled. */
+    val engineBrakingQuadratic: CoastModel.Quadratic? = null,
+    val sailingQuadratic: CoastModel.Quadratic? = null,
+    val useQuadraticModel: Boolean = false,
     val reactionTimeS: Double = 2.0,
     val marginM: Double = 30.0,
     val speedToleranceKmh: Double = 8.0,
@@ -29,6 +33,15 @@ data class CoastSettings(
         get() = when (mode) {
             CoastMode.ENGINE_BRAKING -> engineBrakingDecelerationMps2
             CoastMode.SAILING -> sailingDecelerationMps2
+        }
+
+    val coastModel: CoastModel
+        get() {
+            val quadratic = when (mode) {
+                CoastMode.ENGINE_BRAKING -> engineBrakingQuadratic
+                CoastMode.SAILING -> sailingQuadratic
+            }
+            return quadratic?.takeIf { useQuadraticModel } ?: CoastModel.Constant(coastDecelerationMps2)
         }
 
     /** Target speed for a maneuver, or null if this maneuver type should not trigger a cue. */

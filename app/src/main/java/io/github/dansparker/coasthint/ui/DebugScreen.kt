@@ -3,13 +3,10 @@ package io.github.dansparker.coasthint.ui
 import android.os.SystemClock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -130,20 +127,6 @@ private fun speedLimitStatusText(status: SpeedLimitStatus): String = when (statu
 private fun maxspeedText(maxspeed: Maxspeed): String = when (maxspeed) {
     is Maxspeed.Limit -> "${maxspeed.kmh} km/h"
     Maxspeed.Unlimited -> "∞"
-}
-
-@Composable
-private fun Section(title: String) {
-    HorizontalDivider()
-    Text(title, style = MaterialTheme.typography.titleSmall)
-}
-
-@Composable
-private fun ValueRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label)
-        Text(value, fontFamily = FontFamily.Monospace)
-    }
 }
 
 @Preview(showBackground = true)

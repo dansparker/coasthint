@@ -1,5 +1,7 @@
 package io.github.dansparker.coasthint.service
 
+import io.github.dansparker.coasthint.core.CalibrationResult
+import io.github.dansparker.coasthint.core.CoastMode
 import io.github.dansparker.coasthint.core.DrivingState
 import io.github.dansparker.coasthint.core.Evaluation
 import io.github.dansparker.coasthint.core.UpcomingEvent
@@ -14,6 +16,14 @@ import kotlinx.coroutines.flow.update
 
 data class CueRecord(val event: UpcomingEvent, val atMillis: Long)
 
+/** A running or finished "Ausrollen messen" run. */
+data class CalibrationState(
+    val active: Boolean = false,
+    val mode: CoastMode = CoastMode.ENGINE_BRAKING,
+    val samples: Int = 0,
+    val lastResult: CalibrationResult? = null,
+)
+
 /** Everything the service knows right now, for the UI and the debug screen. */
 data class LiveState(
     val running: Boolean = false,
@@ -25,6 +35,7 @@ data class LiveState(
     val evaluation: Evaluation? = null,
     val lastCue: CueRecord? = null,
     val voiceLog: List<String> = emptyList(),
+    val calibration: CalibrationState = CalibrationState(),
 )
 
 /** Process-wide live state published by [CoastHintService]. */

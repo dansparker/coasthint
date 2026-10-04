@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">CoastHint</string>
 
     <string name="osmand_stopped">OsmAnd: nicht verbunden</string>
@@ -66,4 +66,63 @@
     <string name="debug_last_cue_value">%1$s, vor %2$s</string>
     <string name="debug_voice">Letzte Ansagen von OsmAnd</string>
     <string name="debug_service_off">Hinweise sind aus – Werte erscheinen nach dem Start.</string>
+
+    <!-- Distances are rounded to 50 m steps and never below 50 m, so "Metern" is always right. -->
+    <string name="speech_turn" tools:ignore="PluralsCandidate">Gas weg – Kurve in %1$d Metern</string>
+    <string name="speech_roundabout" tools:ignore="PluralsCandidate">Gas weg – Kreisverkehr in %1$d Metern</string>
+    <string name="speech_limit" tools:ignore="PluralsCandidate">Gas weg – %1$d in %2$d Metern</string>
+
+    <string name="nav_settings">Einstellungen</string>
+    <string name="nav_calibration">Ausrollen messen</string>
+    <string name="nav_trips">Fahrten-Logs</string>
+    <string name="back">Zurück</string>
+
+    <string name="settings_locked">Einstellungen sind während der Fahrt gesperrt (ab 5 km/h).</string>
+    <string name="settings_section_coasting">Ausrollen</string>
+    <string name="settings_mode">Modus</string>
+    <string name="mode_engine_braking">Schub</string>
+    <string name="mode_sailing">Segeln</string>
+    <string name="settings_decel_engine">Verzögerung Schub</string>
+    <string name="settings_decel_sailing">Verzögerung Segeln</string>
+    <string name="settings_calibrated">kalibriert: %1$s</string>
+    <string name="settings_quadratic">Geschwindigkeitsabhängiges Modell (aus Kalibrierung)</string>
+    <string name="settings_quadratic_unavailable">Braucht mindestens 3 Messungen bei unterschiedlichen Geschwindigkeiten.</string>
+    <string name="settings_reaction">Reaktionszeit</string>
+    <string name="settings_margin">Sicherheitsmarge</string>
+    <string name="settings_tolerance">Toleranz über Zielgeschwindigkeit</string>
+    <string name="settings_section_targets">Zielgeschwindigkeiten</string>
+    <string name="settings_target_turn">Abbiegung</string>
+    <string name="settings_target_sharp">Scharfe Abbiegung / Wenden</string>
+    <string name="settings_target_roundabout">Kreisverkehr</string>
+    <string name="settings_slight_enabled">Auch bei leichten Abbiegungen</string>
+    <string name="settings_target_slight">Leichte Abbiegung</string>
+    <string name="settings_section_output">Ausgabe</string>
+    <string name="settings_tone">Ton</string>
+    <string name="settings_speech">Sprachansage</string>
+    <string name="settings_vibration">Vibration</string>
+    <string name="settings_section_data">Daten</string>
+    <string name="settings_trip_log">Fahrt-Log (CSV) aufzeichnen</string>
+    <string name="settings_overpass">Overpass-Server</string>
+    <string name="settings_save">Übernehmen</string>
+
+    <string name="calibration_intro">Im Gang vom Gas gehen (Schub) bzw. auskuppeln (Segeln), Start drücken, ausrollen lassen und Stopp drücken. Mindestens 5 Sekunden und 7 km/h Geschwindigkeitsabnahme. Am besten von einer mitfahrenden Person bedienen lassen oder vorher an sicherer Stelle starten.</string>
+    <string name="calibration_mode">Gemessen wird für: %1$s</string>
+    <string name="calibration_needs_service">Zum Messen zuerst die Hinweise starten (GPS wird gebraucht).</string>
+    <string name="calibration_start">Start</string>
+    <string name="calibration_stop">Stopp</string>
+    <string name="calibration_running">Messung läuft … Messpunkte: %1$d, %2$s</string>
+    <string name="calibration_success">Gemessen: %1$s (%2$s → %3$s, %4$s)</string>
+    <string name="calibration_failed">Messung verworfen: %1$s</string>
+    <string name="calibration_reason_too_short">zu kurz</string>
+    <string name="calibration_reason_too_little_slowdown">zu wenig langsamer geworden</string>
+    <string name="calibration_reason_not_slowing_down">nicht langsamer geworden</string>
+    <string name="calibration_reason_too_noisy">zu unruhige Messwerte</string>
+    <string name="calibration_measurements">Messungen (%1$d), Mittelwert %2$s</string>
+    <string name="calibration_none">Noch keine Messungen – es gilt der eingestellte Wert.</string>
+    <string name="calibration_quadratic">Modell: a(v) = %1$s + %2$s · v²</string>
+    <string name="calibration_clear">Messungen löschen</string>
+
+    <string name="trips_empty">Noch keine Fahrten aufgezeichnet.</string>
+    <string name="trips_share">Teilen</string>
+    <string name="trips_share_title">Fahrt-Log teilen</string>
 </resources>

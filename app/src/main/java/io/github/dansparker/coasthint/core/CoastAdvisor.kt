@@ -32,7 +32,7 @@ data class Evaluation(
  *
  * For each event with distance d_event and target speed v2 at own speed v1:
  * ```
- * d_coast = (v1² − v2²) / (2 · a_coast) + v1 · t_react
+ * d_coast = (v1² − v2²) / (2 · a_coast) + v1 · t_react   (or the calibrated quadratic model)
  * cue when d_event <= d_coast + d_margin and v1 > v2 + v_tol
  * ```
  * Each event is announced at most once. If several events trigger at the same time, the one
@@ -69,7 +69,7 @@ class CoastAdvisor(var settings: CoastSettings = CoastSettings()) {
             is UpcomingEvent.SpeedLimit -> event.limitKmh.toDouble()
         }
         val v2 = kmhToMps(targetKmh)
-        val coast = coastDistance(v1, v2, s.coastDecelerationMps2, s.reactionTimeS)
+        val coast = coastDistance(v1, v2, s.coastModel, s.reactionTimeS)
         return Assessment(
             event = event,
             targetSpeedMps = v2,
@@ -87,7 +87,7 @@ class CoastAdvisor(var settings: CoastSettings = CoastSettings()) {
     companion object {
         private const val MAX_REMEMBERED_IDS = 64
 
-        fun coastDistance(v1Mps: Double, v2Mps: Double, decelerationMps2: Double, reactionTimeS: Double): Double =
-            (v1Mps * v1Mps - v2Mps * v2Mps) / (2 * decelerationMps2) + v1Mps * reactionTimeS
+        fun coastDistance(v1Mps: Double, v2Mps: Double, model: CoastModel, reactionTimeS: Double): Double =
+            model.distanceM(v1Mps, v2Mps) + v1Mps * reactionTimeS
     }
 }

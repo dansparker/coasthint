@@ -21,7 +21,7 @@ class CoastAdvisorTest {
         @Test
         fun `coast distance follows the formula`() {
             // (20² − 5²) / (2 · 0.6) + 20 · 2 = 312.5 + 40
-            assertEquals(352.5, CoastAdvisor.coastDistance(20.0, 5.0, 0.6, 2.0), 1e-9)
+            assertEquals(352.5, CoastAdvisor.coastDistance(20.0, 5.0, CoastModel.Constant(0.6), 2.0), 1e-9)
         }
 
         @Test
@@ -30,6 +30,17 @@ class CoastAdvisorTest {
             val eval = advisor.evaluate(DrivingState(20.0, 0.0), null, limit(2000.0, 18))
             // (20² − 5²) / (2 · 0.3) + 20 · 2 = 625 + 40
             assertEquals(665.0, eval.assessments.single().coastDistanceM, 1e-9)
+        }
+
+        @Test
+        fun `calibrated quadratic model is used when enabled`() {
+            val quadratic = CoastModel.Quadratic(c0 = 0.3, c2 = 0.0005)
+            val settings = CoastSettings(engineBrakingQuadratic = quadratic, useQuadraticModel = true)
+            val eval = CoastAdvisor(settings).evaluate(DrivingState(20.0, 0.0), null, limit(2000.0, 18))
+            assertEquals(quadratic.distanceM(20.0, 5.0) + 40.0, eval.assessments.single().coastDistanceM, 1e-9)
+            val disabled = CoastAdvisor(settings.copy(useQuadraticModel = false))
+                .evaluate(DrivingState(20.0, 0.0), null, limit(2000.0, 18))
+            assertEquals(352.5, disabled.assessments.single().coastDistanceM, 1e-9)
         }
 
         @Test

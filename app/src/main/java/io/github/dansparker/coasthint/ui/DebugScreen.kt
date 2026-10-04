@@ -32,6 +32,8 @@ import io.github.dansparker.coasthint.core.mpsToKmh
 import io.github.dansparker.coasthint.osmand.NavSample
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
 import io.github.dansparker.coasthint.service.LiveState
+import io.github.dansparker.coasthint.speedlimit.Maxspeed
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitStatus
 import kotlinx.coroutines.delay
 
 @Composable
@@ -77,6 +79,19 @@ fun DebugScreen(state: LiveState, onClose: () -> Unit) {
                 driving?.let { "%+.2f m/s²".format(it.accelerationMps2) } ?: dash,
             )
 
+            Section(stringResource(R.string.debug_section_limits))
+            Text(speedLimitStatusText(state.speedLimitStatus))
+            val limits = state.speedLimit
+            ValueRow(
+                stringResource(R.string.debug_road),
+                limits?.road?.let { "${it.name ?: it.highway} (${it.id})" } ?: stringResource(R.string.debug_no_road),
+            )
+            ValueRow(stringResource(R.string.debug_current_limit), limits?.current?.let(::maxspeedText) ?: dash)
+            ValueRow(
+                stringResource(R.string.debug_next_limit),
+                limits?.ahead?.let { "${it.limitKmh} km/h in ${meters(it.distanceM)}" } ?: dash,
+            )
+
             Section(stringResource(R.string.debug_section_advice))
             val next = state.evaluation?.next
             ValueRow(stringResource(R.string.debug_event), next?.let { resources.describeEvent(it.event) } ?: dash)
@@ -101,6 +116,20 @@ fun DebugScreen(state: LiveState, onClose: () -> Unit) {
             OutlinedButton(onClick = onClose) { Text(stringResource(R.string.debug_close)) }
         }
     }
+}
+
+@Composable
+private fun speedLimitStatusText(status: SpeedLimitStatus): String = when (status) {
+    SpeedLimitStatus.Idle -> stringResource(R.string.limit_status_idle)
+    SpeedLimitStatus.Loading -> stringResource(R.string.limit_status_loading)
+    is SpeedLimitStatus.Ready -> stringResource(R.string.limit_status_ready, status.wayCount)
+    is SpeedLimitStatus.Failed ->
+        stringResource(R.string.limit_status_failed, status.reason, status.retryInMillis / 1000)
+}
+
+private fun maxspeedText(maxspeed: Maxspeed): String = when (maxspeed) {
+    is Maxspeed.Limit -> "${maxspeed.kmh} km/h"
+    Maxspeed.Unlimited -> "∞"
 }
 
 @Composable

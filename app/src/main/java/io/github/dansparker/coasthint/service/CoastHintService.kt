@@ -21,12 +21,17 @@ import io.github.dansparker.coasthint.R
 import io.github.dansparker.coasthint.core.CoastAdvisor
 import io.github.dansparker.coasthint.core.Evaluation
 import io.github.dansparker.coasthint.core.SpeedFilter
+import io.github.dansparker.coasthint.core.mpsToKmh
 import io.github.dansparker.coasthint.location.GpsSpeedSource
-import io.github.dansparker.coasthint.location.SpeedSample
+import io.github.dansparker.coasthint.location.PositionFix
 import io.github.dansparker.coasthint.osmand.OsmAndConnection
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
 import io.github.dansparker.coasthint.output.CueOutput
 import io.github.dansparker.coasthint.output.ToneCueOutput
+import io.github.dansparker.coasthint.speedlimit.Maxspeed
+import io.github.dansparker.coasthint.speedlimit.OverpassClient
+import io.github.dansparker.coasthint.speedlimit.OverpassSpeedLimitProvider
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitProvider
 import io.github.dansparker.coasthint.ui.describeEvent
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -34,13 +39,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlin.math.roundToInt
 
 /**
- * Runs while driving: combines OsmAnd's next maneuver with the own GPS speed, asks the
- * [CoastAdvisor] and plays the cue. A foreground service so it keeps working with the screen
+ * Runs while driving: combines OsmAnd's next maneuver and the speed limits ahead with the own
+ * GPS speed, asks the [CoastAdvisor] and plays the cue. A foreground service so it keeps working with the screen
  * off and OsmAnd in front.
  */
 class CoastHintService : LifecycleService() {
     private lateinit var osmAnd: OsmAndConnection
     private lateinit var cueOutput: CueOutput
+    private lateinit var speedLimits: SpeedLimitProvider
     private val advisor = CoastAdvisor()
     private val speedFilter = SpeedFilter()
     private val cueLock = Mutex()
@@ -51,6 +57,7 @@ class CoastHintService : LifecycleService() {
         super.onCreate()
         osmAnd = OsmAndConnection(this, lifecycleScope)
         cueOutput = ToneCueOutput(this)
+        speedLimits = OverpassSpeedLimitProvider(lifecycleScope, OverpassClient()::fetch)
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(CHANNEL_ID, getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW),
         )
@@ -94,20 +101,26 @@ class CoastHintService : LifecycleService() {
             }
         }
         lifecycleScope.launch {
-            GpsSpeedSource(this@CoastHintService).speeds().collect(::onSpeed)
+            speedLimits.status.collect { status -> CoastHintRuntime.update { it.copy(speedLimitStatus = status) } }
+        }
+        lifecycleScope.launch {
+            GpsSpeedSource(this@CoastHintService).fixes().collect(::onFix)
         }
     }
 
-    private fun onSpeed(sample: SpeedSample) {
-        val driving = speedFilter.update(sample.elapsedMillis, sample.speedMps)
+    private fun onFix(fix: PositionFix) {
+        val speed = fix.speedMps ?: return
+        val driving = speedFilter.update(fix.elapsedMillis, speed)
         // OsmAnd stops sending when navigation ends; ignore a stale last maneuver.
         val nav = osmAnd.navigation.value
-            ?.takeIf { sample.elapsedMillis - it.receivedAtMillis <= NAV_MAX_AGE_MILLIS }
-        val evaluation = advisor.evaluate(driving, nav?.info, null)
+            ?.takeIf { fix.elapsedMillis - it.receivedAtMillis <= NAV_MAX_AGE_MILLIS }
+        val speedLimit = speedLimits.lookup(fix, mpsToKmh(driving.speedMps))
+        val evaluation = advisor.evaluate(driving, nav?.info, speedLimit.ahead)
         val cue = evaluation.cue
         CoastHintRuntime.update {
             it.copy(
                 driving = driving,
+                speedLimit = speedLimit,
                 evaluation = evaluation,
                 lastCue = cue?.let { c -> CueRecord(c.event, SystemClock.elapsedRealtime()) } ?: it.lastCue,
             )
@@ -123,7 +136,12 @@ class CoastHintService : LifecycleService() {
         val osmAndText = getString(
             if (state.osmAnd is OsmAndStatus.Connected) R.string.notification_osmand_ok else R.string.notification_osmand_missing,
         )
-        val text = "$osmAndText · ${describeNext(state.evaluation)}"
+        val limitText = when (val limit = state.speedLimit?.current) {
+            is Maxspeed.Limit -> getString(R.string.notification_limit, limit.kmh)
+            Maxspeed.Unlimited -> getString(R.string.notification_unlimited)
+            null -> getString(R.string.notification_limit_unknown)
+        }
+        val text = "$osmAndText · $limitText · ${describeNext(state.evaluation)}"
         if (text == shownNotificationText) return
         shownNotificationText = text
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification(text))

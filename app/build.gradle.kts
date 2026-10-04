@@ -56,5 +56,7 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Real org.json for unit tests; android.jar only has stubs.
+    testImplementation(libs.org.json)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

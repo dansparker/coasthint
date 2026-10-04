@@ -10,6 +10,7 @@ datastore = "1.2.1"
 playServicesLocation = "21.4.0"
 osmandAidl = "master-snapshot"
 junit = "5.14.4"
+orgJson = "20260814"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -30,6 +31,7 @@ osmand-aidl = { module = "net.osmand:android-aidl-lib", version.ref = "osmandAid
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+org-json = { module = "org.json:json", version.ref = "orgJson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

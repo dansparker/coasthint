@@ -30,6 +30,14 @@
     <string name="notification_no_event">kein Ereignis</string>
     <string name="notification_next_event">%1$s in %2$d m</string>
     <string name="notification_stop">Beenden</string>
+    <string name="notification_limit">Limit %1$d</string>
+    <string name="notification_unlimited">kein Limit</string>
+    <string name="notification_limit_unknown">Limit ?</string>
+
+    <string name="limit_status_idle">Tempolimits: noch keine Daten</string>
+    <string name="limit_status_loading">Tempolimits: lade …</string>
+    <string name="limit_status_ready">Tempolimits: Straßen geladen (%1$d)</string>
+    <string name="limit_status_failed">Tempolimits ✗ %1$s – neuer Versuch in %2$d s</string>
 
     <string name="debug_open">Debug-Ansicht</string>
     <string name="debug_close">Zurück</string>
@@ -38,6 +46,11 @@
     <string name="debug_section_osmand">OsmAnd</string>
     <string name="debug_section_driving">Fahrt</string>
     <string name="debug_section_advice">Nächstes Ereignis</string>
+    <string name="debug_section_limits">Tempolimits</string>
+    <string name="debug_road">Straße</string>
+    <string name="debug_current_limit">Aktuelles Limit</string>
+    <string name="debug_next_limit">Nächstes niedrigeres Limit</string>
+    <string name="debug_no_road">keine passende Straße</string>
     <string name="debug_distance_to">Nächstes Manöver</string>
     <string name="debug_turn_type">Turn-Type</string>
     <string name="debug_left_side">Linksverkehr</string>

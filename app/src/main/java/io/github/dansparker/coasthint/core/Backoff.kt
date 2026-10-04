@@ -1,4 +1,4 @@
-package io.github.dansparker.coasthint.osmand
+package io.github.dansparker.coasthint.core
 
 /** Exponential backoff for reconnect attempts: initial, 2×, 4×, … capped at [maxMillis]. */
 class Backoff(

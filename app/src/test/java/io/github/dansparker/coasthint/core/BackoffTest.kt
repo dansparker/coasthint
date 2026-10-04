@@ -1,4 +1,4 @@
-package io.github.dansparker.coasthint.osmand
+package io.github.dansparker.coasthint.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

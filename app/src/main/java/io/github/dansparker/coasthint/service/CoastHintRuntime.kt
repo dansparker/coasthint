@@ -5,6 +5,8 @@ import io.github.dansparker.coasthint.core.Evaluation
 import io.github.dansparker.coasthint.core.UpcomingEvent
 import io.github.dansparker.coasthint.osmand.NavSample
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitInfo
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +20,8 @@ data class LiveState(
     val osmAnd: OsmAndStatus = OsmAndStatus.Stopped,
     val navigation: NavSample? = null,
     val driving: DrivingState? = null,
+    val speedLimit: SpeedLimitInfo? = null,
+    val speedLimitStatus: SpeedLimitStatus = SpeedLimitStatus.Idle,
     val evaluation: Evaluation? = null,
     val lastCue: CueRecord? = null,
     val voiceLog: List<String> = emptyList(),

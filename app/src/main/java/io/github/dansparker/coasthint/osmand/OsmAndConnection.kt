@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.os.RemoteException
 import android.os.SystemClock
 import android.util.Log
+import io.github.dansparker.coasthint.core.Backoff
 import io.github.dansparker.coasthint.core.NavInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

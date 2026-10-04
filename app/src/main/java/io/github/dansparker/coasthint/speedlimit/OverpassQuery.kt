@@ -1,5 +1,6 @@
 package io.github.dansparker.coasthint.speedlimit
 
+import io.github.dansparker.coasthint.roaddb.RoadDbFormat
 import org.json.JSONObject
 import java.util.Locale
 
@@ -7,11 +8,9 @@ import java.util.Locale
 object OverpassQuery {
     /**
      * All drivable roads, not only those with `maxspeed`: roads without a limit are needed
-     * to follow the road ahead across gaps.
+     * to follow the road ahead across gaps. Same selection as the offline database.
      */
-    private const val HIGHWAY_FILTER =
-        "^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|" +
-            "motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$"
+    private val HIGHWAY_FILTER = RoadDbFormat.DRIVABLE_HIGHWAYS.sorted().joinToString("|", "^(", ")$")
 
     /** Points along the expected path: a little behind, then straight ahead in travel direction. */
     fun corridor(

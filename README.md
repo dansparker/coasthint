@@ -33,15 +33,33 @@ Voraussetzungen: JDK 17+, Android SDK (API 37).
 ./gradlew installDebug
 ```
 
+## Offline-Tempolimits
+
+Ohne Mobilfunk kommen die Tempolimits aus einer SQLite-Datei (mit R-Tree-Index), die am PC
+aus einem OpenStreetMap-Extrakt erzeugt wird:
+
+1. Extrakt herunterladen, z. B. `austria-latest.osm.pbf` von
+   [Geofabrik](https://download.geofabrik.de/europe/austria.html)
+2. Umwandeln:
+   ```bash
+   ./gradlew :tools:roaddb-builder:run --args="austria-latest.osm.pbf austria-roads.db"
+   ```
+3. Die `.db`-Datei aufs Handy kopieren und in CoastHint unter **Offline-Daten** importieren
+
+Unter **Einstellungen → Tempolimits aus** steht standardmäßig „Automatisch“: offline, wo die
+Datei die Position abdeckt, sonst online über Overpass.
+
 ## Tech-Stack
 
 Kotlin · Jetpack Compose · Coroutines/Flow · Foreground Service · DataStore · JUnit 5
 
 ## Status
 
-Phase 1 (MVP) ist umgesetzt. Als Nächstes: Phase 2 mit Offline-Tempolimits
-(vorverarbeiteter OSM-Extrakt als SQLite), damit die App ohne Mobilfunk funktioniert.
-Details zu Architektur und Vorgehen: [CLAUDE.md](CLAUDE.md).
+Phase 1 (MVP) und Phase 2 (Offline-Tempolimits) sind umgesetzt, aber noch nicht im
+Straßenverkehr erprobt. Details zu Architektur und Vorgehen: [CLAUDE.md](CLAUDE.md).
+
+Module: `app` (Android-App), `roaddb` (Dateiformat der Offline-Datenbank, reines Kotlin),
+`tools/roaddb-builder` (Konverter `.osm.pbf` → Datenbank, läuft am PC).
 
 ## Sicherheit
 

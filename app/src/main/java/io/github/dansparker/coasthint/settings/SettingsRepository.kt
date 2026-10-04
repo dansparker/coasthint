@@ -12,6 +12,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.github.dansparker.coasthint.core.CoastMeasurement
 import io.github.dansparker.coasthint.core.CoastMode
 import io.github.dansparker.coasthint.core.CoastSettings
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -57,6 +58,8 @@ class SettingsRepository(context: Context) {
         return AppSettings(
             coast = coast,
             output = output,
+            speedLimitSource = p[LIMIT_SOURCE]?.let { runCatching { SpeedLimitSource.valueOf(it) }.getOrNull() }
+                ?: SpeedLimitSource.AUTO,
             overpassServer = p[OVERPASS]?.takeIf { it.isNotBlank() } ?: AppSettings().overpassServer,
             tripLogEnabled = p[TRIP_LOG] ?: true,
             calibrations = CoastMode.entries.associateWith { MeasurementCodec.decode(p[calibrationKey(it)]) }
@@ -80,6 +83,7 @@ class SettingsRepository(context: Context) {
         p[OUT_TONE] = s.output.tone
         p[OUT_SPEECH] = s.output.speech
         p[OUT_VIBRATION] = s.output.vibration
+        p[LIMIT_SOURCE] = s.speedLimitSource.name
         p[OVERPASS] = s.overpassServer.trim()
         p[TRIP_LOG] = s.tripLogEnabled
         CoastMode.entries.forEach { mode -> p[calibrationKey(mode)] = MeasurementCodec.encode(s.measurements(mode)) }
@@ -100,6 +104,7 @@ class SettingsRepository(context: Context) {
         val OUT_TONE = booleanPreferencesKey("output_tone")
         val OUT_SPEECH = booleanPreferencesKey("output_speech")
         val OUT_VIBRATION = booleanPreferencesKey("output_vibration")
+        val LIMIT_SOURCE = stringPreferencesKey("speed_limit_source")
         val OVERPASS = stringPreferencesKey("overpass_server")
         val TRIP_LOG = booleanPreferencesKey("trip_log")
 

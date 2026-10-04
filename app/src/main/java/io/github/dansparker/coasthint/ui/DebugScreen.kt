@@ -30,6 +30,7 @@ import io.github.dansparker.coasthint.osmand.NavSample
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
 import io.github.dansparker.coasthint.service.LiveState
 import io.github.dansparker.coasthint.speedlimit.Maxspeed
+import io.github.dansparker.coasthint.speedlimit.RoadDataSource
 import io.github.dansparker.coasthint.speedlimit.SpeedLimitStatus
 import kotlinx.coroutines.delay
 
@@ -119,7 +120,11 @@ fun DebugScreen(state: LiveState, onClose: () -> Unit) {
 private fun speedLimitStatusText(status: SpeedLimitStatus): String = when (status) {
     SpeedLimitStatus.Idle -> stringResource(R.string.limit_status_idle)
     SpeedLimitStatus.Loading -> stringResource(R.string.limit_status_loading)
-    is SpeedLimitStatus.Ready -> stringResource(R.string.limit_status_ready, status.wayCount)
+    is SpeedLimitStatus.Ready -> stringResource(
+        R.string.limit_status_ready,
+        status.wayCount,
+        stringResource(if (status.source == RoadDataSource.OFFLINE) R.string.limit_source_offline else R.string.limit_source_online),
+    )
     is SpeedLimitStatus.Failed ->
         stringResource(R.string.limit_status_failed, status.reason, status.retryInMillis / 1000)
 }

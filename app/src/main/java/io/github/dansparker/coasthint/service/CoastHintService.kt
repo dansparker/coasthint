@@ -36,12 +36,18 @@ import io.github.dansparker.coasthint.settings.AppSettings
 import io.github.dansparker.coasthint.settings.SettingsRepository
 import io.github.dansparker.coasthint.speedlimit.Maxspeed
 import io.github.dansparker.coasthint.speedlimit.OverpassClient
-import io.github.dansparker.coasthint.speedlimit.OverpassSpeedLimitProvider
+import io.github.dansparker.coasthint.speedlimit.CorridorSpeedLimitProvider
+import io.github.dansparker.coasthint.speedlimit.OfflineLoader
+import io.github.dansparker.coasthint.speedlimit.OfflineRoads
+import io.github.dansparker.coasthint.speedlimit.OverpassLoader
+import io.github.dansparker.coasthint.speedlimit.SelectingLoader
 import io.github.dansparker.coasthint.speedlimit.SpeedLimitProvider
 import io.github.dansparker.coasthint.ui.describeEvent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -71,8 +77,17 @@ class CoastHintService : LifecycleService() {
         cueOutputs = CueOutputs(this)
         settingsRepository = SettingsRepository(this)
         tripLogger = TripLogger(tripDirectory(this))
-        // Reads the server on every request, so a changed setting applies to the next fetch.
-        speedLimits = OverpassSpeedLimitProvider(lifecycleScope, { query -> OverpassClient(settings.overpassServer).fetch(query) })
+        val offlineRoads = OfflineRoads.get(this)
+        // Setting and server are read on every request, so changes apply to the next load.
+        speedLimits = CorridorSpeedLimitProvider(
+            scope = lifecycleScope,
+            loader = SelectingLoader(
+                setting = { settings.speedLimitSource },
+                offlineBounds = { withContext(Dispatchers.IO) { runCatching { offlineRoads.info()?.bounds }.getOrNull() } },
+                online = OverpassLoader({ query -> OverpassClient(settings.overpassServer).fetch(query) }),
+                offline = OfflineLoader(offlineRoads),
+            ),
+        )
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(CHANNEL_ID, getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW),
         )

@@ -24,6 +24,7 @@ import io.github.dansparker.coasthint.R
 import io.github.dansparker.coasthint.core.CoastMode
 import io.github.dansparker.coasthint.core.CoastSettings
 import io.github.dansparker.coasthint.settings.AppSettings
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitSource
 import java.util.Locale
 
 private fun fmt(value: Double, decimals: Int, unit: String) = String.format(Locale.GERMAN, "%.${decimals}f %s", value, unit)
@@ -128,6 +129,27 @@ fun SettingsScreen(
         }
 
         Section(stringResource(R.string.settings_section_data))
+        Text(stringResource(R.string.settings_limit_source))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SpeedLimitSource.entries.forEachIndexed { index, source ->
+                SegmentedButton(
+                    selected = settings.speedLimitSource == source,
+                    onClick = { onUpdate { it.copy(speedLimitSource = source) } },
+                    shape = SegmentedButtonDefaults.itemShape(index, SpeedLimitSource.entries.size),
+                    enabled = enabled,
+                ) {
+                    Text(
+                        stringResource(
+                            when (source) {
+                                SpeedLimitSource.AUTO -> R.string.limit_source_auto
+                                SpeedLimitSource.ONLINE -> R.string.limit_source_online
+                                SpeedLimitSource.OFFLINE -> R.string.limit_source_offline
+                            },
+                        ),
+                    )
+                }
+            }
+        }
         SwitchRow(stringResource(R.string.settings_trip_log), settings.tripLogEnabled, enabled) { on ->
             onUpdate { it.copy(tripLogEnabled = on) }
         }

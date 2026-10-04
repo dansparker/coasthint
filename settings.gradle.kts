@@ -25,3 +25,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "coasthint"
 include(":app")
+include(":roaddb")
+include(":tools:roaddb-builder")

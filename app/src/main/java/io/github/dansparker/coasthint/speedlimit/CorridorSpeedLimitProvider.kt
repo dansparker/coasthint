@@ -14,14 +14,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Speed limits from OpenStreetMap via the Overpass API. Loads the road corridor ahead in the
- * background (see [FetchPolicy]), keeps the last few corridors and matches every fix against them.
+ * Speed limits from OpenStreetMap roads around the corridor ahead. Loads the corridor in the
+ * background through [loader] (Overpass, offline database or a choice of both, see
+ * [FetchPolicy] for when), keeps the last few corridors and matches every fix against them.
  * [lookup] must be called from the thread [scope] runs on.
  */
-class OverpassSpeedLimitProvider(
+class CorridorSpeedLimitProvider(
     private val scope: CoroutineScope,
-    private val fetch: suspend (query: String) -> String,
-    private val parseDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val loader: CorridorLoader,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val policy: FetchPolicy = FetchPolicy(),
     private val matcher: MapMatcher = MapMatcher(),
     private val lookAhead: LookAhead = LookAhead(),
@@ -58,17 +59,16 @@ class OverpassSpeedLimitProvider(
         if (fetchJob?.isActive == true || nowMillis < retryAtMillis) return
         if (!policy.shouldFetch(lastFetch, position, bearing, nowMillis)) return
         lastFetch = FetchRecord(position, bearing, nowMillis)
-        val query = OverpassQuery.build(OverpassQuery.corridor(position, bearing), corridorRadiusM)
+        val request = CorridorRequest(position, OverpassQuery.corridor(position, bearing), corridorRadiusM)
         _status.value = SpeedLimitStatus.Loading
         fetchJob = scope.launch {
             try {
-                val json = fetch(query)
-                val loaded = withContext(parseDispatcher) { OverpassQuery.parse(json) }
-                corridors.addLast(loaded)
+                val loaded = loader.load(request)
+                corridors.addLast(loaded.network)
                 while (corridors.size > keptCorridors) corridors.removeFirst()
-                network = withContext(parseDispatcher) { RoadNetwork.merge(corridors.toList()) }
+                network = withContext(computeDispatcher) { RoadNetwork.merge(corridors.toList()) }
                 backoff.reset()
-                _status.value = SpeedLimitStatus.Ready(network.ways.size)
+                _status.value = SpeedLimitStatus.Ready(network.ways.size, loaded.source)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

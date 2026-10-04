@@ -72,6 +72,13 @@ class RoadNetwork(ways: Collection<RoadWay>, nodes: Map<Long, LatLon>) {
 
     val isEmpty: Boolean get() = ways.isEmpty()
 
+    /** Whether any road segment passes within [radiusM] of [position]. */
+    fun hasRoadNear(position: LatLon, radiusM: Double): Boolean = ways.values.any { way ->
+        (0 until way.nodeIds.size - 1).any { i ->
+            Geo.projectOnSegment(position, position(way.nodeIds[i]), position(way.nodeIds[i + 1])).distanceM <= radiusM
+        }
+    }
+
     companion object {
         val EMPTY = RoadNetwork(emptyList(), emptyMap())
 

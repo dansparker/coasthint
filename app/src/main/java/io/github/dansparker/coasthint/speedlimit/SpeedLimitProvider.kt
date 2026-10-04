@@ -16,11 +16,11 @@ data class SpeedLimitInfo(
 sealed interface SpeedLimitStatus {
     data object Idle : SpeedLimitStatus
     data object Loading : SpeedLimitStatus
-    data class Ready(val wayCount: Int) : SpeedLimitStatus
+    data class Ready(val wayCount: Int, val source: RoadDataSource) : SpeedLimitStatus
     data class Failed(val reason: String, val retryInMillis: Long) : SpeedLimitStatus
 }
 
-/** Source of speed limits around the own position: Overpass now, offline data later. */
+/** Source of speed limits around the own position. */
 interface SpeedLimitProvider {
     val status: StateFlow<SpeedLimitStatus>
 

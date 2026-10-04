@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class OverpassSpeedLimitProviderTest {
+class CorridorSpeedLimitProviderTest {
     private val json = TestRoads.Builder()
         .node(1, 0.0, 0.0).node(2, 0.0, 500.0).node(3, 0.0, 1_000.0)
         .way(1, 1, 2, maxspeed = 100)
@@ -25,8 +25,10 @@ class OverpassSpeedLimitProviderTest {
         return PositionFix(atMillis, p.lat, p.lon, speedMps, bearingDeg = 0.0, accuracyM = 5.0)
     }
 
-    private fun TestScope.provider(fetch: suspend (String) -> String) =
-        OverpassSpeedLimitProvider(this, fetch, parseDispatcher = StandardTestDispatcher(testScheduler))
+    private fun TestScope.provider(fetch: suspend (String) -> String): CorridorSpeedLimitProvider {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        return CorridorSpeedLimitProvider(this, OverpassLoader(fetch, dispatcher), computeDispatcher = dispatcher)
+    }
 
     @Test
     fun `loads the corridor and reports current and upcoming limit`() = runTest {
@@ -39,7 +41,7 @@ class OverpassSpeedLimitProviderTest {
         assertEquals(1L, info.road?.id)
         assertEquals(Maxspeed.Limit(100), info.current)
         assertEquals(70, info.ahead?.limitKmh)
-        assertEquals(SpeedLimitStatus.Ready(2), provider.status.value)
+        assertEquals(SpeedLimitStatus.Ready(2, RoadDataSource.ONLINE), provider.status.value)
         assertEquals(1, queries)
     }
 

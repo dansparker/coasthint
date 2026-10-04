@@ -5,6 +5,7 @@ import io.github.dansparker.coasthint.core.CoastMeasurement
 import io.github.dansparker.coasthint.core.CoastMode
 import io.github.dansparker.coasthint.core.CoastSettings
 import io.github.dansparker.coasthint.speedlimit.OverpassClient
+import io.github.dansparker.coasthint.speedlimit.SpeedLimitSource
 import java.util.Locale
 
 data class OutputSettings(
@@ -18,6 +19,7 @@ data class AppSettings(
     /** Manually set values; decelerations are replaced by calibration results where available. */
     val coast: CoastSettings = CoastSettings(),
     val output: OutputSettings = OutputSettings(),
+    val speedLimitSource: SpeedLimitSource = SpeedLimitSource.AUTO,
     val overpassServer: String = OverpassClient.DEFAULT_SERVER,
     val tripLogEnabled: Boolean = true,
     val calibrations: Map<CoastMode, List<CoastMeasurement>> = emptyMap(),

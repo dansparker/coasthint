@@ -34,7 +34,7 @@ import io.github.dansparker.coasthint.core.kmhToMps
 import io.github.dansparker.coasthint.osmand.OsmAndStatus
 import io.github.dansparker.coasthint.service.LiveState
 
-private enum class Screen { STATUS, SETTINGS, CALIBRATION, TRIPS, DEBUG }
+private enum class Screen { STATUS, SETTINGS, CALIBRATION, TRIPS, OFFLINE, DEBUG }
 
 /** Settings may only be changed while (almost) standing still. */
 private val SETTINGS_LOCK_SPEED_MPS = kmhToMps(5.0)
@@ -46,6 +46,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val trips by viewModel.trips.collectAsStateWithLifecycle()
+    val offline by viewModel.offline.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -62,6 +63,10 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
         }
         permissionLauncher.launch(permissions.toTypedArray())
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) viewModel.importOffline(uri)
     }
 
     if (screen != Screen.STATUS) BackHandler { screen = Screen.STATUS }
@@ -98,6 +103,15 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 onShare = { file ->
                     context.startActivity(Intent.createChooser(viewModel.shareIntent(file), shareTitle))
                 },
+                onBack = back,
+            )
+        }
+        Screen.OFFLINE -> {
+            LaunchedEffect(Unit) { viewModel.refreshOffline() }
+            OfflineDataScreen(
+                state = offline,
+                onImport = { importLauncher.launch(arrayOf("*/*")) },
+                onDelete = viewModel::deleteOffline,
                 onBack = back,
             )
         }
@@ -142,6 +156,7 @@ private fun StatusScreen(
             OutlinedButton(onClick = { onNavigate(Screen.SETTINGS) }) { Text(stringResource(R.string.nav_settings)) }
             OutlinedButton(onClick = { onNavigate(Screen.CALIBRATION) }) { Text(stringResource(R.string.nav_calibration)) }
             OutlinedButton(onClick = { onNavigate(Screen.TRIPS) }) { Text(stringResource(R.string.nav_trips)) }
+            OutlinedButton(onClick = { onNavigate(Screen.OFFLINE) }) { Text(stringResource(R.string.nav_offline)) }
             OutlinedButton(onClick = { onNavigate(Screen.DEBUG) }) { Text(stringResource(R.string.debug_open)) }
         }
     }

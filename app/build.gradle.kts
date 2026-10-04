@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.play.services.location)
+    implementation(project(":roaddb"))
+    // SQLite with R-Tree; the platform SQLite on Android is built without it.
+    implementation(libs.androidx.sqlite.bundled)
     implementation("${libs.osmand.aidl.get()}@aar")
     debugImplementation(libs.androidx.compose.ui.tooling)
 

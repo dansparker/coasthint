@@ -19,8 +19,8 @@ import kotlinx.coroutines.flow.map
 private val Context.settingsStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 /** Persists [AppSettings] in a Preferences DataStore. */
-class SettingsRepository(context: Context) {
-    private val store = context.applicationContext.settingsStore
+class SettingsRepository(private val store: DataStore<Preferences>) {
+    constructor(context: Context) : this(context.applicationContext.settingsStore)
 
     val settings: Flow<AppSettings> = store.data.map(::read)
 
